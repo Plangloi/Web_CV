@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<!-- lang="fr-CA" : indique au navigateur et aux moteurs de recherche que la langue est le français canadien -->
+<html lang="fr-CA">
+<head>
+<!-- UTF-8 : encodage universel — permet les accents, le ©, les —, etc. -->
+<meta charset="UTF-8">
+<!-- viewport : empêche le zoom automatique sur mobile, rend la page responsive -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Patrice Langlois — Programmeur systèmes AV</title>
+<!-- description : texte qui apparaît sous le lien dans Google -->
+<meta name="description" content="Programmeur et intégrateur de systèmes audio-vidéo indépendant. Montréal. DSP, réseau, automatisation, commissioning.">
+
+<!-- preconnect : ouvre la connexion à Google Fonts à l'avance pour charger plus vite -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- 3 familles de polices :
+     Archivo     → titres (display) — gras, compact, impactant
+     IBM Plex Mono → code, étiquettes, UI technique
+     IBM Plex Sans → texte courant, lisible -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS — palette et variables globales
+   Les variables CSS (--nom) sont définies ici une seule fois
+   et réutilisées partout. Pour changer une couleur : édite
+   juste cette section, ça se propage automatiquement.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  /* Fonds — du plus sombre au plus clair */
+  --bg:#0d1014;          /* fond général : noir rack */
+  --bg-2:#12161d;        /* surface légèrement surélevée */
+  --bg-3:#161b24;        /* carte / panneau */
+
+  /* Filets et séparateurs */
+  --line:#222a35;        /* filet discret */
+  --line-2:#2e3a48;      /* filet un peu plus visible */
+
+  /* Texte — du plus vif au plus estompé */
+  --ink:#e8e3d9;         /* texte principal : blanc chaud */
+  --ink-dim:#99a3b1;     /* texte secondaire */
+  --ink-faint:#5b6573;   /* étiquettes, placeholders */
+
+  /* Couleurs d'accent — inspirées des VU mètres hardware */
+  --amber:#e8a73a;       /* couleur signature : signal actif, amber LED */
+  --amber-dim:#7a5f2c;   /* version sombre de l'amber */
+  --cyan:#46c7c0;        /* réseau actif, état connecté */
+  --cyan-dim:#2a5a57;    /* version sombre du cyan */
+  --hot:#07ea0b;         /* clip / alerte — utilisé avec parcimonie */
+
+  /* Largeur max du contenu — au-delà la page ne s'élargit plus */
+  --maxw:1120px;
+
+  /* Familles de polices — définies ici pour être changées facilement */
+  --display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+
+/* Reset minimal : supprime les marges/paddings par défaut du navigateur */
+*{box-sizing:border-box;margin:0;padding:0}
+
+/* scroll-behavior:smooth : les liens ancres (#section) défilent en douceur */
+html{scroll-behavior:smooth}
+/* Si l'utilisateur a coché "Réduire les animations" dans son OS → défilement instantané */
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.6;      /* interligne = 1.6× la taille du texte → bonne lisibilité */
+  -webkit-font-smoothing:antialiased;   /* anti-crénelage sur Mac/iOS */
+  text-rendering:optimizeLegibility;    /* meilleur espacement des lettres */
+  overflow-x:hidden;    /* empêche le scroll horizontal accidentel */
+}
+
+/* ─── TEXTURE DE FOND ─────────────────────────────────────────
+   body::before crée un pseudo-élément invisible posé par-dessus
+   tout le fond. Il affiche une grille fine (style PCB / patch bay).
+   position:fixed → la grille reste fixe pendant le scroll.
+   pointer-events:none → n'interfère pas avec les clics.
+   mask-image → la grille s'estompe progressivement (visible
+   surtout en haut à droite, invisible ailleurs). */
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(var(--line) 1px,transparent 1px),   /* lignes horizontales */
+    linear-gradient(90deg,var(--line) 1px,transparent 1px); /* lignes verticales */
+  background-size:46px 46px;  /* taille d'une cellule de grille */
+  opacity:.18;                /* très discret */
+  mask-image:radial-gradient(circle at 70% 12%,#000 0%,transparent 62%);
+}
+
+/* Liens : héritent la couleur du texte, pas de soulignement par défaut */
+a{color:inherit;text-decoration:none}
+
+/* Accessibilité : contour visible quand on navigue au clavier (Tab) */
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
+
+/* .wrap : conteneur centré avec largeur max et padding latéral fluide.
+   clamp(min, préféré, max) → le padding s'adapte à la largeur d'écran.
+   z-index:1 → passe au-dessus de la texture body::before (z-index:0). */
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 clamp(1.1rem,4vw,2.2rem);position:relative;z-index:1}
+
+/* Classes utilitaires réutilisables */
+.mono{font-family:var(--mono)}
+
+/* .eyebrow : ligne de sur-titre en petites majuscules monospace */
+.eyebrow{
+  font-family:var(--mono);font-size:.72rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.18em;color:var(--ink-faint);
+}
+.eyebrow b{color:var(--amber);font-weight:600}
+
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+   position:sticky → la barre reste en haut lors du scroll.
+   backdrop-filter:blur → effet "verre dépoli" sur le fond.
+   rgba(...,.72) → fond semi-transparent pour voir le contenu
+   défiler derrière la nav.
+   ═══════════════════════════════════════════════════════════ */
+.nav{
+  position:sticky;top:0;z-index:50;
+  border-bottom:1px solid var(--line);
+  background:rgba(13,16,20,.72);backdrop-filter:blur(10px) saturate(140%);
+}
+.nav-in{
+  max-width:var(--maxw);margin:0 auto;padding:.7rem clamp(1.1rem,4vw,2.2rem);
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+}
+/* Logo / marque */
+.brand{font-family:var(--mono);font-weight:600;letter-spacing:.02em;font-size:.95rem;display:flex;align-items:center;gap:.5rem}
+/* Petit point orange lumineux à côté du logo */
+.brand .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber)}
+/* Liens de navigation */
+.nav-links{display:flex;gap:1.4rem;align-items:center}
+.nav-links a{font-family:var(--mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-dim);transition:color .15s}
+.nav-links a:hover{color:var(--amber)}
+/* Indicateur de disponibilité à droite */
+.status{display:flex;align-items:center;gap:.45rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;color:var(--ink-dim)}
+/* LED rouge qui clignote — couleur "hot" pour attirer l'œil */
+.led{width:8px;height:8px;border-radius:50%;background:var(--hot);box-shadow:0 0 7px var(--hot);animation:blink 2.4s infinite}
+@keyframes blink{0%,72%,100%{opacity:1}80%,92%{opacity:.32}}
+@media (prefers-reduced-motion:reduce){.led{animation:none}}
+/* Sur mobile (<640px) : cache les liens nav pour gagner de l'espace */
+@media(max-width:640px){.nav-links{display:none}}
+/* Bouton de langue EN/FR */
+.lang-btn{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);background:transparent;border:1px solid var(--line-2);border-radius:3px;padding:.25rem .55rem;cursor:pointer;transition:all .15s}
+.lang-btn:hover{border-color:var(--amber);color:var(--amber)}
+
+
+
+/* ═══════════════════════════════════════════════════════════
+   HERO — section d'accueil
+   grid à 2 colonnes : texte à gauche, matrice de routage à droite.
+   clamp() rend le padding fluide entre mobile et desktop.
+   ═══════════════════════════════════════════════════════════ */
+.hero{padding:clamp(3rem,7vw,5.5rem) 0 clamp(2.5rem,6vw,4rem)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(1.5rem,4vw,3rem);align-items:center}
+/* Tablette/mobile (<860px) : passe en une seule colonne */
+@media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:2rem}}
+
+.h-eyebrow{margin-bottom:1.4rem}
+
+/* Grand titre — taille fluide dans le hero */
+.h-name{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(2.7rem,8.5vw,5.4rem);line-height:.92;
+  letter-spacing:-.025em;text-transform:uppercase;color:var(--ink);
+}
+/* Deuxième ligne du nom en couleur atténuée */
+.h-name .l2{color:var(--ink-dim)}
+
+/* ─── BANNER NOM ──────────────────────────────────────────────
+   Bande collante qui apparaît sous la nav quand le hero scrolle.
+   position:sticky + overflow:hidden + max-height:0 → invisible
+   jusqu'à la classe .visible → glisse vers le bas en douceur.
+   Le fond semi-transparent empêche le contenu de passer derrière
+   de façon illisible (pas un overlay transparent). */
+.name-banner{
+  position:sticky;
+  top:2.8rem;
+  z-index:40;
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:max-height .9s cubic-bezier(.4,0,.2,1), opacity .8s ease;
+  background:rgba(13,16,20,.88);
+  backdrop-filter:blur(14px) saturate(150%);
+  border-bottom:1px solid var(--line);
+}
+.name-banner.visible{ max-height:5.5rem; opacity:1; }
+.name-banner .wrap{
+  padding:.55rem clamp(1.1rem,4vw,2.2rem);
+  display:flex;align-items:baseline;gap:.6em;
+}
+.name-banner .bn{
+  font-family:var(--display);font-weight:900;
+  font-size:clamp(1.8rem,4.5vw,3rem);
+  line-height:1;letter-spacing:-.025em;text-transform:uppercase;color:var(--ink);
+}
+.name-banner .bn .l2{color:var(--ink-dim)}
+
+.h-role{
+  margin-top:1.25rem;font-size:clamp(1.05rem,2.4vw,1.32rem);
+  color:var(--ink-dim);max-width:30ch;font-weight:400;
+}
+.h-role b{color:var(--ink);font-weight:600}
+
+/* Rangée de boutons CTA (call-to-action) */
+.h-cta{margin-top:2rem;display:flex;flex-wrap:wrap;gap:.8rem}
+
+/* ─── BOUTONS ─────────────────────────────────────────────── */
+.btn{
+  font-family:var(--mono);font-size:.84rem;letter-spacing:.04em;
+  padding:.72rem 1.15rem;border:1px solid var(--line-2);border-radius:3px;
+  display:inline-flex;align-items:center;gap:.5rem;transition:all .16s;cursor:pointer;background:transparent;color:var(--ink)
+}
+.btn:hover{border-color:var(--amber);color:var(--amber);transform:translateY(-1px)}
+/* Bouton principal : fond amber plein */
+.btn-primary{background:var(--amber);color:#1a1206;border-color:var(--amber);font-weight:600}
+.btn-primary:hover{background:#f3b652;color:#1a1206;box-shadow:0 6px 22px -8px var(--amber)}
+
+/* ─── CARTE MATRICE DE ROUTAGE ────────────────────────────── */
+/* Conteneur du canvas canvas#matrix dans le hero */
+.matrix-card{
+  background:linear-gradient(160deg,var(--bg-2),var(--bg));
+  border:1px solid var(--line);border-radius:6px;
+  padding:.85rem;position:relative;overflow:hidden;
+  /* Ombre portée profonde + reflet subtil en haut */
+  box-shadow:0 24px 60px -30px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+}
+/* En-tête de la carte avec "ROUTING MATRIX" et le point RECALL */
+.matrix-head{display:flex;justify-content:space-between;align-items:center;padding:.15rem .35rem .6rem;font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint)}
+.matrix-head .live{color:var(--cyan);display:flex;align-items:center;gap:.4rem}
+/* ::before crée le petit point cyan à gauche de "RECALL" */
+.matrix-head .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+/* Le canvas prend toute la largeur de sa carte parente */
+#matrix{display:block;width:100%;height:auto;border-radius:3px}
+
+/* ─── ANIMATIONS D'ENTRÉE ─────────────────────────────────── */
+/* .reveal : état de départ invisible et décalé vers le bas.
+   L'animation "rise" fait monter l'élément et l'opacifie.
+   Les classes .d1 à .d4 échelonnent les délais pour un effet
+   en cascade (chaque élément apparaît légèrement après le précédent). */
+.reveal{opacity:0;transform:translateY(14px);animation:rise .7s cubic-bezier(.2,.7,.2,1) forwards}
+.reveal.d1{animation-delay:.05s}
+.reveal.d2{animation-delay:.16s}
+.reveal.d3{animation-delay:.27s}
+.reveal.d4{animation-delay:.38s}
+@keyframes rise{to{opacity:1;transform:none}}
+/* Accessibilité : si l'OS demande "réduire les animations", on rend tout visible immédiatement */
+@media (prefers-reduced-motion:reduce){.reveal{animation:none;opacity:1;transform:none}}
+
+
+/* ═══════════════════════════════════════════════════════════
+   CHROME COMMUN AUX SECTIONS
+   Chaque section a la même structure d'en-tête :
+   [// slug]  [TITRE]  [note optionnelle à droite]
+   ═══════════════════════════════════════════════════════════ */
+.section{padding:clamp(3.5rem,8vw,5.5rem) 0;border-top:1px solid var(--line)}
+.sec-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.4rem;flex-wrap:wrap}
+/* Slug style "commentaire code" en amber : // services */
+.sec-slug{font-family:var(--mono);font-size:.8rem;color:var(--amber);letter-spacing:.06em}
+.sec-title{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.01em;font-size:clamp(1.35rem,3.2vw,2rem);line-height:1.05}
+/* Note à l'extrême droite (ex: "4 lignes I/O") */
+.sec-note{margin-left:auto;font-family:var(--mono);font-size:.72rem;color:var(--ink-faint);letter-spacing:.1em;text-transform:uppercase}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SERVICES — style "channel strips" de console
+   Chaque rangée = un service, structurée en 3 colonnes :
+   [ID vertical] | [texte] | [VU mètre]
+   ═══════════════════════════════════════════════════════════ */
+.svc{display:grid;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--bg-3)}
+/* grid-template-columns: auto (ID) | 1fr (contenu) | auto (mètre) */
+.svc-row{display:grid;grid-template-columns:auto 1fr auto;gap:1.2rem;align-items:center;padding:1.3rem clamp(1rem,3vw,1.6rem);border-bottom:1px solid var(--line);transition:background .16s}
+.svc-row:last-child{border-bottom:none}
+.svc-row:hover{background:var(--bg-2)}
+/* Étiquette verticale style rack (DSP, NET, etc.)
+   writing-mode:vertical-rl + rotate(180°) → texte de bas en haut */
+.svc-id{font-family:var(--mono);font-size:.74rem;color:var(--ink-faint);letter-spacing:.1em;writing-mode:vertical-rl;transform:rotate(180deg);align-self:stretch;display:flex;align-items:center;border-right:1px solid var(--line);padding-right:1.1rem}
+.svc-body h3{font-family:var(--display);font-weight:700;font-size:1.12rem;letter-spacing:.01em;margin-bottom:.3rem}
+.svc-body p{color:var(--ink-dim);font-size:.95rem;max-width:62ch}
+/* Tags de technologie sous la description */
+.svc-body .tags{margin-top:.6rem;font-family:var(--mono);font-size:.72rem;color:var(--ink-faint);letter-spacing:.04em}
+
+/* ─── VU MÈTRE ─────────────────────────────────────────────
+   5 barres <i> de hauteurs différentes alignées en bas.
+   Les classes .on (amber) et .hot (rouge) sont ajoutées/
+   retirées par le JavaScript d'animation VU mètre. */
+.meter{display:flex;gap:3px;align-items:flex-end;height:34px}
+.meter i{width:5px;border-radius:1px;background:var(--line-2);display:block}  /* barre éteinte */
+.meter i.on{background:var(--amber);box-shadow:0 0 6px -1px var(--amber)}     /* barre allumée */
+.meter i.hot{background:var(--hot);box-shadow:0 0 6px -1px var(--hot)}        /* barre en clip */
+
+/* Mobile (<620px) : ID passe en horizontal, grille 2 colonnes (texte + mètre) */
+@media(max-width:620px){
+  .svc-id{writing-mode:horizontal-tb;transform:none;border-right:none;border-bottom:1px solid var(--line);padding:0 0 .5rem;align-self:start}
+  .svc-row{grid-template-columns:1fr auto;gap:.7rem}
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   STACK — plateformes et protocoles
+   Groupes de "chips" (petites étiquettes cliquables).
+   .chip.lang → hover cyan (langage de scripting)
+   .chip      → hover amber (plateforme/protocole)
+   ═══════════════════════════════════════════════════════════ */
+.stack-grp{margin-bottom:1.8rem}
+.stack-grp:last-child{margin-bottom:0}
+.stack-lbl{font-family:var(--mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.14em;color:var(--ink-faint);margin-bottom:.9rem}
+.chips{display:flex;flex-wrap:wrap;gap:.6rem}
+.chip{font-family:var(--mono);font-size:.82rem;padding:.5rem .85rem;border:1px solid var(--line-2);border-radius:3px;color:var(--ink-dim);transition:all .15s;cursor:default}
+.chip:hover{border-color:var(--amber);color:var(--amber)}
+.chip.lang:hover{border-color:var(--cyan);color:var(--cyan)}
+/* Chips IA : violet pour se distinguer des plateformes AV et des langages */
+.chip.ai:hover{border-color:#a78bfa;color:#a78bfa}
+
+
+/* ═══════════════════════════════════════════════════════════
+   PROJETS — grille de "snapshots"
+   auto-fill + minmax(280px,1fr) → le nombre de colonnes
+   s'ajuste automatiquement à la largeur de l'écran.
+   ═══════════════════════════════════════════════════════════ */
+.snaps{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.snap{
+  background:var(--bg-3);border:1px solid var(--line);border-radius:6px;
+  padding:1.4rem;display:flex;flex-direction:column;gap:.7rem;transition:all .18s;
+  position:relative  /* nécessaire pour positionner la flèche .arrow en absolu */
+}
+.snap:hover{border-color:var(--amber);transform:translateY(-3px);box-shadow:0 16px 40px -24px rgba(0,0,0,.8)}
+/* En-tête de la carte : SNAP 01 à gauche, type à droite.
+   padding-right évite que le texte passe sous la flèche .arrow */
+.snap-top{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;color:var(--ink-faint);padding-right:1.6rem}
+.snap-num{color:var(--amber)}
+.snap h3{font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.2}
+.snap p{color:var(--ink-dim);font-size:.92rem;flex:1}
+/* Ligne de stack (technologies utilisées) en bas de carte */
+.snap .st{font-family:var(--mono);font-size:.72rem;color:var(--cyan);letter-spacing:.03em;border-top:1px solid var(--line);padding-top:.7rem;margin-top:.2rem}
+/* Flèche ↗ positionnée en absolu en haut à droite de la carte */
+.snap .arrow{position:absolute;top:1.3rem;right:1.3rem;color:var(--ink-faint);transition:.18s}
+/* Au survol : la flèche devient amber et se décale légèrement */
+.snap:hover .arrow{color:var(--amber);transform:translate(2px,-2px)}
+/* Carte AI : bordure et accent violets pour se démarquer des projets AV */
+.snap-ai{border-color:#3b2f5e}
+.snap-ai:hover{border-color:#a78bfa;box-shadow:0 16px 40px -24px rgba(167,139,250,.35)}
+.snap-ai .snap-num{color:#a78bfa}
+.snap-ai .st{color:#a78bfa}
+
+
+/* ═══════════════════════════════════════════════════════════
+   CONTACT — deux colonnes : texte + "patch panel"
+   ═══════════════════════════════════════════════════════════ */
+.contact{display:grid;grid-template-columns:1fr 1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center}
+@media(max-width:760px){.contact{grid-template-columns:1fr;gap:2rem}}
+.contact h2{font-family:var(--display);font-weight:800;text-transform:uppercase;font-size:clamp(1.8rem,5vw,2.8rem);line-height:1;letter-spacing:-.01em}
+.contact p{color:var(--ink-dim);margin-top:1rem;max-width:36ch}
+
+/* Bloc de contact style "patch panel" : clés à gauche, valeurs à droite */
+.patch{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:1.4rem;font-family:var(--mono);font-size:.88rem}
+.patch .ln{display:flex;gap:.9rem;padding:.55rem 0;border-bottom:1px solid var(--line);align-items:center}
+.patch .ln:last-child{border-bottom:none}
+.patch .k{color:var(--ink-faint);min-width:5.5rem}  /* clé : courriel, github, etc. */
+.patch .v a:hover{color:var(--amber)}
+.patch .v{color:var(--ink)}                          /* valeur */
+
+
+/* ═══════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════ */
+.foot{border-top:1px solid var(--line);padding:2rem 0;font-family:var(--mono);font-size:.74rem;color:var(--ink-faint);letter-spacing:.05em}
+.foot-in{display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVIGATION — barre fixe en haut de page
+     href="#section" : liens internes vers les ancres id=""
+     ═══════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="nav-in">
+    <!-- Logo : lien vers le haut de page (#top) -->
+    <a class="brand" href="#top"><span class="dot"></span>iPat<span style="color:var(--ink-faint)">·av</span></a>
+    <!-- Liens vers chaque section (cachés sur mobile) -->
+    <div class="nav-links">
+      <a href="#services">services</a>
+      <a href="#stack">plateformes</a>
+      <a href="#projets">projets</a>
+      <a href="#contact">contact</a>
+    </div>
+    <!-- Bouton langue + statut -->
+    <div style="display:flex;align-items:center;gap:.9rem">
+      <button class="lang-btn" id="lang-btn">EN</button>
+      <div class="status"><span class="led"></span><span id="status-text">TBC</span></div>
+    </div>
+  </div>
+</nav>
+
+<!-- Bande nom — sticky sous la nav, révélée par JS quand le hero scrolle hors du viewport -->
+<div class="name-banner" id="name-banner">
+  <div class="wrap">
+    <div class="bn">Patrice <span class="l2">Langlois</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HERO — première section visible au chargement
+     id="top" : cible du lien logo dans la nav
+     Les classes .reveal .d1/.d2/etc. déclenchent les animations
+     d'entrée avec des délais échelonnés.
+     ═══════════════════════════════════════════════════════════ -->
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="hero-grid">
+
+      <!-- Colonne gauche : texte et CTA -->
+      <div>
+        <div class="h-eyebrow eyebrow reveal d1">PROGRAMMEUR · INTÉGRATEUR SYSTÈMES AV — <b>INDÉPENDANT</b></div>
+        <h1 class="h-name reveal d1">Patrice<br><span class="l2">Langlois</span></h1>
+        <p class="h-role reveal d2">Du design à la livraison&nbsp;: <b>Programmation, audio, automatisation, AI Systems, Network</b> Systèmes Informatiques et Audio Visual @Montréal, QC.</p>
+        <div class="h-cta reveal d3">
+          <!-- Bouton principal (amber plein) -->
+          <a class="btn btn-primary" id="btn-contact" href="#contact">▸ Me contacter</a>
+          <!-- Boutons secondaires (contour seulement) -->
+          <a class="btn" id="btn-projects" href="#projets">→ Voir les projets</a>
+          <!-- target="_blank" : ouvre dans un nouvel onglet | rel="noopener" : sécurité -->
+          <a class="btn" href="https://github.com/Plangloi" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+
+      <!-- Colonne droite : canvas de la matrice de routage (dessiné par le JS) -->
+      <div class="matrix-card reveal d4">
+        <div class="matrix-head">
+          <span>ROUTING MATRIX</span>
+          <span class="live">RECALL</span>  <!-- ::before ajoute le point cyan -->
+        </div>
+        <!-- aria-label : description pour les lecteurs d'écran (accessibilité) -->
+        <canvas id="matrix" aria-label="Matrice de routage : disciplines acheminées vers contextes de production"></canvas>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SERVICES — style channel strips de console de mixage
+     Chaque .svc-row = un service avec :
+       .svc-id    → étiquette verticale (DSP, NET, etc.)
+       .svc-body  → titre + description + tags
+       .meter     → VU mètre animé par le JS (5 barres <i>)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="services">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-slug">// services</span>
+      <h2 class="sec-title">Services</h2>
+      <span class="sec-note" id="svc-note">4 lignes I/O</span>
+    </div>
+    <div class="svc">
+
+      <!-- SERVICE 1 : Programmation DSP -->
+      <div class="svc-row">
+        <div class="svc-id">DSP</div>
+        <div class="svc-body" id="svc-dsp">
+          <h3>Programmation DSP &amp; contrôle</h3>
+          <!-- &amp; = & en HTML (caractère réservé) -->
+          <p>Logique, UCI, snapshots et plugins sur mesure. Architecture de signal propre, gain staging documenté, déploiements répétables.</p>
+          <div class="tags">Q-SYS · Crestron · BSS · plugins Lua/Python · OSC</div>
+        </div>
+        <!-- 5 barres <i> — les hauteurs définissent la forme "staircase".
+             Les classes .on/.hot sont gérées dynamiquement par le JS. -->
+        <div class="meter">
+          <i style="height:40%"></i>
+          <i style="height:60%"></i>
+          <i style="height:75%"></i>
+          <i style="height:88%"></i>
+          <i style="height:100%"></i>
+        </div>
+      </div>
+
+      <!-- SERVICE 2 : Réseau & transport audio -->
+      <div class="svc-row">
+        <div class="svc-id">NET</div>
+        <div class="svc-body" id="svc-net">
+          <h3>Réseau &amp; transport audio</h3>
+          <p>Design réseau pour le transport AV&nbsp;: VLAN, QoS, redondance, clocking. Diagnostic de bout en bout quand le paquet n'arrive pas.</p>
+          <!-- &nbsp; = espace insécable (empêche le retour à la ligne sur le ":") -->
+          <div class="tags">Dante / AES67 · AVB · sACN/Art-Net · NDI · Riedel</div>
+        </div>
+        <div class="meter">
+          <i style="height:35%"></i>
+          <i style="height:55%"></i>
+          <i style="height:70%"></i>
+          <i style="height:85%"></i>
+          <i style="height:100%"></i>
+        </div>
+      </div>
+
+      <!-- SERVICE 3 : Automatisation & scripting -->
+      <div class="svc-row">
+        <div class="svc-id">AUTO</div>
+        <div class="svc-body" id="svc-auto">
+          <h3>Automatisation &amp; scripting</h3>
+          <p>Outils sur mesure qui éliminent le travail manuel&nbsp;: intégrations API, parsing de documentation technique, glue entre systèmes qui ne se parlent pas.</p>
+          <div class="tags">Python · Lua · PowerShell · bash · REST/OSC</div>
+        </div>
+        <div class="meter">
+          <i style="height:50%"></i>
+          <i style="height:72%"></i>
+          <i style="height:90%"></i>
+          <i style="height:100%"></i>
+          <i style="height:60%"></i>
+        </div>
+      </div>
+
+      <!-- SERVICE 4 : Commissioning & support -->
+      <div class="svc-row">
+        <div class="svc-id">SVC</div>
+        <div class="svc-body" id="svc-svc">
+          <h3>Commissioning &amp; support</h3>
+          <p>Mise en service, optimisation, documentation as-built, dépannage sur site et à distance. Le système livré fonctionne — et reste maintenable.</p>
+          <div class="tags">QLab · Avid S6L · DiGiCo · grandMA · Meyer · QSC</div>
+        </div>
+        <div class="meter">
+          <i style="height:45%"></i>
+          <i style="height:65%"></i>
+          <i style="height:80%"></i>
+          <i style="height:92%"></i>
+          <i style="height:100%"></i>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     STACK — plateformes & protocoles maîtrisés
+     Organisé en 3 groupes de chips.
+     .chip.lang → hover cyan (langages de programmation)
+     .chip      → hover amber (plateformes / protocoles)
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="stack">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-slug">// stack</span>
+      <h2 class="sec-title">Plateformes &amp; protocoles</h2>
+    </div>
+
+    <div class="stack-grp">
+      <div class="stack-lbl" id="lbl-control">Contrôle &amp; DSP</div>
+      <div class="chips">
+        <span class="chip">Q-SYS</span><span class="chip">Crestron</span><span class="chip">H&H</span>
+        <span class="chip">Avid S6L</span><span class="chip">DiGiCo</span><span class="chip">QLab</span>
+        <span class="chip">Meyer Sound</span><span class="chip">L-Acoustics</span>
+      </div>
+    </div>
+
+    <div class="stack-grp">
+      <div class="stack-lbl" id="lbl-network">Réseau &amp; transport</div>
+      <div class="chips">
+        <span class="chip">Dante / AES67</span><span class="chip">sACN / Art-Net</span><span class="chip">NDI</span>
+        <span class="chip">OSC</span><span class="chip">Riedel</span><span class="chip">Cisco,Luminex,Netgear</span>
+      </div>
+    </div>
+
+    <!-- .chip.lang = chip de langage → hover cyan au lieu d'amber -->
+    <div class="stack-grp">
+      <div class="stack-lbl">Scripting</div>
+      <div class="chips">
+        <span class="chip lang">Python</span><span class="chip lang">Lua</span>
+        <span class="chip lang">PowerShell</span><span class="chip lang">bash</span>
+      </div>
+    </div>
+
+    <!-- .chip.ai = chip IA → hover violet pour distinguer des autres catégories -->
+    <div class="stack-grp">
+      <div class="stack-lbl" id="lbl-ai">Intelligence artificielle</div>
+      <div class="chips">
+        <span class="chip ai">Ollama</span><span class="chip ai">OpenAI API</span>
+        <span class="chip ai">Claude (Anthropic)</span><span class="chip ai">LangChain</span>
+        <span class="chip ai">LLM local</span><span class="chip ai">VR</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PROJETS — grille de cartes "snapshots"
+     Pour ajouter un projet : copie un bloc <article class="snap">
+     et remplace le contenu. Si le projet a un lien, entoure
+     l'article d'un <a href="..."> ou ajoute href sur la flèche.
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="projets">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-slug">// work</span>
+      <h2 class="sec-title">Projets récents</h2>
+      <span class="sec-note">snapshots</span>
+    </div>
+    <div class="snaps">
+
+      <!-- PROJET 1 -->
+      <article class="snap" id="snap01">
+        <span class="arrow">↗</span>
+        <div class="snap-top"><span class="snap-num">SNAP 01</span><span class="snap-type">INSTALL FIXE</span></div>
+        <h3>Salle de spectacle — DSP + réseau</h3>
+        <p>Conception et programmation du traitement audio, design réseau Dante redondant, mise en service et documentation as-built.</p>
+        <div class="st">Q-SYS · Dante · UCI sur mesure</div>
+      </article>
+
+      <!-- PROJET 2 -->
+      <article class="snap" id="snap02">
+        <span class="arrow">↗</span>
+        <div class="snap-top"><span class="snap-num">SNAP 02</span><span class="snap-type">R&amp;D</span></div>
+        <h3>Plugins Q-SYS sur mesure</h3>
+        <p>Plugins de contrôle pour caméras et murs vidéo&nbsp;: intégration TCP/REST, parsing de protocole, UI native dans l'écosystème Q-SYS.</p>
+        <div class="st">Lua · TCP/Telnet · REST API</div>
+      </article>
+
+      <!-- PROJET 3 -->
+      <article class="snap" id="snap03">
+        <span class="arrow">↗</span>
+        <div class="snap-top"><span class="snap-num">SNAP 03</span><span class="snap-type">AUTOMATISATION</span></div>
+        <h3>Outils d'automatisation AV</h3>
+        <p>Extraction structurée de diagrammes one-line, sync d'horaires et d'inventaires, intégrations API qui remplacent la saisie manuelle.</p>
+        <div class="st">Python · PyMuPDF · APIs</div>
+      </article>
+
+      <!-- PROJET 4 -->
+      <article class="snap" id="snap04">
+        <span class="arrow">↗</span>
+        <div class="snap-top"><span class="snap-num">SNAP 04</span><span class="snap-type">SPATIAL</span></div>
+        <h3>Audio spatial &amp; show control</h3>
+        <p>Intégration tracking-vers-spatialisation (PSN → ADM-OSC), routage de scènes, et show control pour productions live.</p>
+        <div class="st">OSC · ADM-OSC · QLab</div>
+      </article>
+
+      <!-- PROJET 5 : AI -->
+      <article class="snap snap-ai" id="snap05">
+        <div class="snap-top"><span class="snap-num">SNAP 05</span><span class="snap-type">LOCAL AI</span></div>
+        <h3>Agents IA &amp; LLM locaux</h3>
+        <p>Déploiement de modèles de langage locaux (Ollama) et cloud (Claude, OpenAI) pour des outils AV sur mesure — chatbots internes, génération de documentation, automatisation augmentée par IA.</p>
+        <div class="st">Ollama · OpenAI API · Claude · LangChain</div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONTACT — texte + patch panel d'infos
+     Pour changer le courriel : cherche "patrice.langlois@gmail.com"
+     et remplace les deux occurrences (href et texte visible).
+     ═══════════════════════════════════════════════════════════ -->
+<section class="section" id="contact">
+  <div class="wrap">
+    <div class="contact">
+      <!-- Colonne gauche : appel à l'action -->
+      <div>
+        <h2>contact&nbsp;</h2>
+        <p id="contact-desc">Programmation, commissioning ou un coup de main sur un système qui fait des siennes — écris-moi.</p>
+        <div style="margin-top:1.6rem">
+          <a class="btn btn-primary" href="mailto:patrice.langlois@gmail.com">▸ patrice.langlois@gmail.com</a>
+        </div>
+      </div>
+      <!-- Colonne droite : patch panel d'infos de contact -->
+      <div class="patch">
+        <!-- Chaque .ln = une ligne clé/valeur style patch panel -->
+        <div class="ln"><span class="k" id="lbl-email">courriel</span><span class="v"><a href="mailto:patrice.langlois@gmail.com">patrice.langlois@gmail.com</a></span></div>
+        <div class="ln"><span class="k">github</span><span class="v"><a href="https://github.com/Plangloi" target="_blank" rel="noopener">github.com/Plangloi</a></span></div>
+        <div class="ln"><span class="k" id="lbl-location">base</span><span class="v">Montréal, QC</span></div>
+        <div class="ln"><span class="k" id="lbl-status">statut</span><span class="v" style="color:var(--cyan)">TBC</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pied de page minimal -->
+<footer class="foot">
+  <div class="wrap foot-in">
+    <!-- id="yr" : l'année est injectée par le JS (voir bas de page) -->
+    <span>© <span id="yr"></span> Patrice Langlois — Montréal</span>
+    <span id="footer-tagline">Html · zéro · fait avec AI</span>
+  </div>
+</footer>
+
+<script>
+/* Injecte l'année courante dans le footer — plus besoin de la mettre à jour manuellement */
+document.getElementById('yr').textContent = new Date().getFullYear();
+
+
+/* ═══════════════════════════════════════════════════════════
+   MATRICE DE ROUTAGE — canvas animé dans le hero
+   ───────────────────────────────────────────────────────────
+   Principe :
+   - Grille de points (crosspoints) = disciplines × contextes
+   - Les points "actifs" (ACTIVE) sont les vraies routes de
+     compétence : ex. DSP → INSTALL, SCRIPT → R&D, etc.
+   - Un sweep (balayage) vertical éclaire brièvement toutes
+     les colonnes en amber pour simuler un refresh de signal.
+   - Le hover de la souris met en évidence une ligne + colonne.
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+  const cv = document.getElementById('matrix');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');  /* contexte 2D pour dessiner */
+  /* Détecte si l'OS demande de réduire les animations */
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+  /* Libellés des lignes (disciplines) et colonnes (contextes) */
+  const ROWS = ['DSP','RÉSEAU','SCRIPT','RF/COMMS','COMMISSION'];
+  const COLS = ['CORPO','TOURNÉE','BROADCAST','THÉÂTRE','INSTALL','EXPÉRIENTIEL','R&D'];
+
+  /* Crosspoints actifs = "r,c" — indique quelles routes sont établies.
+     Exemple : '0,0' = DSP → CORPO, '2,6' = SCRIPT → R&D */
+  const ACTIVE = new Set(['0,0','0,4','1,1','1,2','2,5','2,6','3,2','3,1','4,4','4,3','4,0','0,5']);
+
+  /* Récupère les couleurs CSS définies dans :root */
+  const css = getComputedStyle(document.documentElement);
+  const C = {
+    amber: css.getPropertyValue('--amber').trim() || '#e8a73a',
+    cyan:  css.getPropertyValue('--cyan').trim()  || '#46c7c0',
+    line:  css.getPropertyValue('--line-2').trim()|| '#2e3a48',
+    faint: css.getPropertyValue('--ink-faint').trim()|| '#5b6573',
+  };
+
+  /* Variables de layout (calculées dans layout()) */
+  let W=0,H=0,dpr=1,padL=0,padT=0,gw=0,gh=0;
+  /* Position de la souris sur la grille (-1 = hors grille) */
+  let hover={r:-1,c:-1};
+
+  /* layout() : recalcule les dimensions du canvas selon sa taille CSS.
+     dpr = devicePixelRatio : multiplie la résolution pour les écrans
+     Retina (sinon le canvas est flou sur Mac). */
+  function layout(){
+    const rect = cv.getBoundingClientRect();
+    const cssW = rect.width || 460;
+    const labels = cssW > 430;    /* affiche les étiquettes seulement si assez large */
+    padL = labels ? 86 : 14;      /* marge gauche pour les étiquettes de lignes */
+    padT = labels ? 22 : 14;      /* marge haute pour les étiquettes de colonnes */
+    const padR = 14, padB = 14;
+    const cssH = Math.max(230, Math.min(330, cssW * 0.62));  /* hauteur proportionnelle */
+    dpr = Math.min(window.devicePixelRatio||1, 2);  /* max 2× pour économiser la mémoire */
+    W = cssW; H = cssH;
+    cv.width = cssW*dpr; cv.height = cssH*dpr;
+    cv.style.height = cssH+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);  /* scale le contexte selon dpr */
+    gw = (W - padL - padR) / (COLS.length-1);  /* espacement horizontal entre points */
+    gh = (H - padT - padB) / (ROWS.length-1);  /* espacement vertical */
+    cv._labels = labels;
+  }
+
+  /* Retourne les coordonnées pixel d'un crosspoint (r=ligne, c=colonne) */
+  function node(r,c){ return { x: padL + c*gw, y: padT + r*gh }; }
+
+  /* draw(t) : dessine une frame complète. t = timestamp en ms (fourni par rAF) */
+  function draw(t){
+    ctx.clearRect(0,0,W,H);  /* efface la frame précédente */
+
+    /* sweep = position du balayage vertical (0 à COLS.length).
+       (t/2600) % 1 → cycle de 2.6 secondes, normalisé 0→1
+       × (COLS.length+1) → ramené en "numéro de colonne" */
+    const sweep = reduce ? -1 : ((t/2600) % 1) * (COLS.length+1) - 0.5;
+    const labels = cv._labels;
+
+    /* ── Filets de fond ── */
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(46,58,72,.45)';
+    /* Lignes horizontales (une par ROWS) */
+    for(let r=0;r<ROWS.length;r++){const a=node(r,0),b=node(r,COLS.length-1);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+    /* Lignes verticales (une par COLS) */
+    for(let c=0;c<COLS.length;c++){const a=node(0,c),b=node(ROWS.length-1,c);ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+
+    /* ── Étiquettes ── */
+    if(labels){
+      ctx.font = '500 10px ui-monospace, "IBM Plex Mono", monospace';
+      ctx.fillStyle = C.faint;
+      /* Libellés des lignes (alignés à droite, dans la marge gauche) */
+      ctx.textBaseline='middle';
+      ctx.textAlign='right';
+      for(let r=0;r<ROWS.length;r++){const n=node(r,0);ctx.fillText(ROWS[r], padL-12, n.y);}
+      /* Libellés des colonnes (rotatés -20° pour ne pas se chevaucher) */
+      ctx.textAlign='center';ctx.textBaseline='alphabetic';
+      ctx.save();
+      for(let c=0;c<COLS.length;c++){const n=node(0,c);ctx.save();ctx.translate(n.x,padT-9);ctx.rotate(-Math.PI/9);ctx.fillText(COLS[c],0,0);ctx.restore();}
+      ctx.restore();
+    }
+
+    /* ── Crosspoints ── */
+    for(let r=0;r<ROWS.length;r++){
+      for(let c=0;c<COLS.length;c++){
+        const n=node(r,c);
+        const active = ACTIVE.has(r+','+c);      /* route établie ? */
+        const isHover = (r===hover.r && c===hover.c);  /* souris dessus ? */
+
+        /* Distance du sweep : 0 = pile sur la colonne, >0.6 = hors zone */
+        const swDist = Math.abs(c - sweep);
+        const swGlow = swDist < 0.6 ? (1 - swDist/0.6) : 0;
+
+        /* Valeurs par défaut : petit point gris */
+        let radius = 2.4, color = C.line, glow = 0;
+
+        /* Route active : point cyan plus grand avec halo pulsant */
+        if(active){
+          const breathe = reduce ? .85 : .68 + .32*Math.sin(t/900 + (r*3+c));
+          radius = 3.4; color = C.cyan; glow = 8*breathe;
+        }
+        /* Sweep : point amber éphémère pendant le balayage */
+        if(swGlow>0 && !active){ color = C.amber; glow = 6*swGlow; radius = 2.4+1.2*swGlow; }
+        /* Hover : point amber plus grand + halo fort */
+        if(isHover){ color = C.amber; glow = 12; radius = 4.4; }
+
+        /* Petit segment horizontal avant le point actif (effet "signal entrant") */
+        if(active && !reduce){
+          ctx.strokeStyle = 'rgba(70,199,192,.22)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();ctx.moveTo(n.x-gw*.5,n.y);ctx.lineTo(n.x,n.y);ctx.stroke();
+        }
+
+        /* Dessine le point */
+        ctx.beginPath();
+        ctx.arc(n.x,n.y,radius,0,Math.PI*2);
+        if(glow>0){ctx.shadowBlur=glow;ctx.shadowColor=color;}
+        ctx.fillStyle=color;ctx.fill();
+        ctx.shadowBlur=0;  /* reset shadowBlur pour ne pas contaminer les tracés suivants */
+      }
+    }
+
+    /* ── Croix de hover ── ligne + colonne en surbrillance amber */
+    if(hover.r>=0){
+      const n=node(hover.r,hover.c);
+      ctx.strokeStyle='rgba(232,167,58,.30)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(padL-6,n.y);ctx.lineTo(W-8,n.y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(n.x,padT-6);ctx.lineTo(n.x,H-8);ctx.stroke();
+    }
+  }
+
+  /* Boucle d'animation : requestAnimationFrame rappelle loop() à ~60fps */
+  let raf;
+  function loop(t){ draw(t); raf=requestAnimationFrame(loop); }
+  function start(){ cancelAnimationFrame(raf); if(reduce){draw(0);} else {raf=requestAnimationFrame(loop);} }
+
+  /* Détection de la souris sur le canvas */
+  function onMove(e){
+    const rect=cv.getBoundingClientRect();
+    const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    let best={r:-1,c:-1},bd=24;  /* bd = "best distance" : rayon de détection en px */
+    for(let r=0;r<ROWS.length;r++)for(let c=0;c<COLS.length;c++){
+      const n=node(r,c),d=Math.hypot(n.x-x,n.y-y);
+      if(d<bd){bd=d;best={r,c};}
+    }
+    hover=best;
+  }
+  cv.addEventListener('mousemove',onMove);
+  cv.addEventListener('mouseleave',()=>hover={r:-1,c:-1});  /* reset quand la souris sort */
+
+  /* Recalcule le layout après un redimensionnement (avec debounce 120ms) */
+  let rt;
+  window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{layout();if(reduce)draw(0);},120);});
+  layout();start();
+})();  /* IIFE : fonction immédiatement invoquée — isole les variables du reste de la page */
+
+
+/* ═══════════════════════════════════════════════════════════
+   VU MÈTRES — animation des barres dans la section Services
+   ───────────────────────────────────────────────────────────
+   Chaque mètre a une "personnalité" :
+     bias     = niveau moyen au repos (0→1, 1 = plein signal)
+     activity = amplitude des variations (0 = stable, 1 = agité)
+
+   Physique simplifiée par mètre à chaque tick (~12fps) :
+     1. Parfois (6% de chance) : choisit un nouveau niveau cible
+     2. Calcule la vélocité : ressort vers la cible + bruit aléatoire
+     3. Met à jour le niveau (clampé entre 0 et 5)
+     4. Allume les barres <i> jusqu'au niveau calculé
+        → dernière barre allumée = rouge (.hot = clip)
+        → autres barres allumées = amber (.on = signal normal)
+
+   requestAnimationFrame avec throttle à 82ms → ~12fps
+   (plus lent que 60fps mais plus authentique pour un VU mètre)
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+  const meters = document.querySelectorAll('.meter');
+  if(!meters.length) return;
+
+  /* Personnalités : [bias, activity] pour chaque mètre dans l'ordre du DOM
+     DSP=hot, NET=stable, AUTO=très actif, SVC=calme */
+  const persona = [[.80,.70],[.52,.42],[.88,.78],[.62,.52]];
+
+  /* Initialise l'état de chaque mètre */
+  const states = Array.from(meters).map((el,i)=>{
+    const segs = Array.from(el.querySelectorAll('i'));  /* les 5 barres <i> */
+    const [bias, activity] = persona[i] ?? [.65,.55];
+    const init = bias * segs.length;  /* niveau de départ proportionnel au bias */
+    return {
+      segs,           /* référence aux éléments DOM */
+      level: init,    /* niveau courant (nombre décimal 0–5) */
+      target: init,   /* niveau cible (le ressort tend vers lui) */
+      v: 0,           /* vélocité courante */
+      bias,           /* niveau de repos */
+      activity        /* amplitude des variations */
+    };
+  });
+
+  let lastTick = 0;  /* timestamp du dernier tick pour le throttle */
+
+  function tick(ts){
+    requestAnimationFrame(tick);  /* planifie le prochain appel */
+
+    /* Throttle : saute les frames si < 82ms depuis le dernier tick */
+    if(ts - lastTick < 82) return;
+    lastTick = ts;
+
+    states.forEach(s => {
+      /* Parfois : choisit un nouveau niveau cible autour du bias */
+      if(Math.random() < .06){
+        const spread = s.activity * 1.5;
+        s.target = Math.max(0, Math.min(s.segs.length,
+          s.bias * s.segs.length + (Math.random() - .5) * spread * s.segs.length));
+      }
+
+      /* Mise à jour physique :
+         s.v * .62  → amortissement (le mouvement se freine progressivement)
+         (target - level) * .20 → force de rappel vers la cible (ressort)
+         (Math.random() - .5) * .32 → bruit aléatoire (fluctuation naturelle) */
+      s.v = s.v * .62 + (s.target - s.level) * .20 + (Math.random() - .5) * .32;
+      s.level = Math.max(0, Math.min(s.segs.length, s.level + s.v));
+
+      /* Nombre de barres à allumer (arrondi) */
+      const lit = Math.round(s.level);
+
+      /* Met à jour les classes CSS de chaque barre */
+      s.segs.forEach((seg, idx) => {
+        seg.classList.remove('on','hot');  /* reset */
+        if(idx < lit){
+          /* Dernière barre = clip rouge, autres = signal amber */
+          seg.classList.add(idx === s.segs.length - 1 ? 'hot' : 'on');
+        }
+      });
+    });
+  }
+
+  requestAnimationFrame(tick);  /* démarre la boucle */
+})();
+
+/* ─── BANNER NOM ──────────────────────────────────────────────
+   IntersectionObserver surveille le h1 du hero.
+   Quand il sort du viewport → ajoute .visible sur .name-banner
+   → max-height s'ouvre → la bande glisse vers le bas. */
+(function(){
+  const banner = document.getElementById('name-banner');
+  const h1     = document.querySelector('.h-name');
+  if(!banner || !h1) return;
+  new IntersectionObserver(
+    ([entry]) => banner.classList.toggle('visible', !entry.isIntersecting),
+    {threshold: 0}
+  ).observe(h1);
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   TOGGLE LANGUE EN / FR
+   ─────────────────────────────────────────────────────────── */
+(function(){
+  /* Dictionnaire FR / EN — clé = sélecteur CSS, valeur = innerHTML */
+  const T = {
+    fr: {
+      'a[href="#stack"]'   : 'plateformes',
+      'a[href="#projets"]' : 'projets',
+      '#status-text'       : 'TBC',
+      '.h-eyebrow'         : 'PROGRAMMEUR · INTÉGRATEUR SYSTÈMES AV — <b>INDÉPENDANT</b>',
+      '.h-role'            : 'Du design à la livraison&nbsp;: <b>Programmation, audio, automatisation, AI Systems, Network</b> Systèmes Informatiques et Audio Visual @Montréal, QC.',
+      '#btn-contact'       : '▸ Me contacter',
+      '#btn-projects'      : '→ Voir les projets',
+      '#svc-note'          : '4 lignes I/O',
+      '#svc-dsp h3'        : 'Programmation DSP &amp; contrôle',
+      '#svc-dsp p'         : 'Logique, UCI, snapshots et plugins sur mesure. Architecture de signal propre, gain staging documenté, déploiements répétables.',
+      '#svc-net h3'        : 'Réseau &amp; transport audio',
+      '#svc-net p'         : 'Design réseau pour le transport AV&nbsp;: VLAN, QoS, redondance, clocking. Diagnostic de bout en bout quand le paquet n\'arrive pas.',
+      '#svc-auto h3'       : 'Automatisation &amp; scripting',
+      '#svc-auto p'        : 'Outils sur mesure qui éliminent le travail manuel&nbsp;: intégrations API, parsing de documentation technique, glue entre systèmes qui ne se parlent pas.',
+      '#svc-svc h3'        : 'Commissioning &amp; support',
+      '#svc-svc p'         : 'Mise en service, optimisation, documentation as-built, dépannage sur site et à distance. Le système livré fonctionne — et reste maintenable.',
+      '#stack .sec-title'  : 'Plateformes &amp; protocoles',
+      '#lbl-control'       : 'Contrôle &amp; DSP',
+      '#lbl-network'       : 'Réseau &amp; transport',
+      '#lbl-ai'            : 'Intelligence artificielle',
+      '#projets .sec-title': 'Projets récents',
+      '#snap01 .snap-type' : 'INSTALL FIXE',
+      '#snap01 h3'         : 'Salle de spectacle — DSP + réseau',
+      '#snap01 p'          : 'Conception et programmation du traitement audio, design réseau Dante redondant, mise en service et documentation as-built.',
+      '#snap02 .snap-type' : 'R&amp;D',
+      '#snap02 p'          : 'Plugins de contrôle pour caméras et murs vidéo&nbsp;: intégration TCP/REST, parsing de protocole, UI native dans l\'écosystème Q-SYS.',
+      '#snap03 .snap-type' : 'AUTOMATISATION',
+      '#snap03 h3'         : 'Outils d\'automatisation AV',
+      '#snap03 p'          : 'Extraction structurée de diagrammes one-line, sync d\'horaires et d\'inventaires, intégrations API qui remplacent la saisie manuelle.',
+      '#snap04 .snap-type' : 'SPATIAL',
+      '#snap04 p'          : 'Intégration tracking-vers-spatialisation (PSN → ADM-OSC), routage de scènes, et show control pour productions live.',
+      '#snap05 .snap-type' : 'LOCAL AI',
+      '#snap05 h3'         : 'Agents IA &amp; LLM locaux',
+      '#snap05 p'          : 'Déploiement de modèles de langage locaux (Ollama) et cloud (Claude, OpenAI) pour des outils AV sur mesure — chatbots internes, génération de documentation, automatisation augmentée par IA.',
+      '#contact h2'        : 'contact&nbsp;',
+      '#contact-desc'      : 'Programmation, commissioning ou un coup de main sur un système qui fait des siennes — écris-moi.',
+      '#lbl-email'         : 'courriel',
+      '#lbl-location'      : 'base',
+      '#lbl-status'        : 'statut',
+      '#footer-tagline'    : 'Html · zéro · fait avec AI',
+    },
+    en: {
+      'a[href="#stack"]'   : 'platforms',
+      'a[href="#projets"]' : 'projects',
+      '#status-text'       : 'TBC',
+      '.h-eyebrow'         : 'PROGRAMMER · AV SYSTEMS INTEGRATOR — <b>INDEPENDENT</b>',
+      '.h-role'            : 'From design to delivery&nbsp;: <b>Programming, audio, automation, AI Systems, Network</b> Computer and Audio Visual Systems @Montreal, QC.',
+      '#btn-contact'       : '▸ Contact me',
+      '#btn-projects'      : '→ View projects',
+      '#svc-note'          : '4 I/O lines',
+      '#svc-dsp h3'        : 'DSP Programming &amp; control',
+      '#svc-dsp p'         : 'Logic, UCI, custom snapshots and plugins. Clean signal architecture, documented gain staging, repeatable deployments.',
+      '#svc-net h3'        : 'Network &amp; audio transport',
+      '#svc-net p'         : 'Network design for AV transport&nbsp;: VLAN, QoS, redundancy, clocking. End-to-end diagnostics when the packet doesn\'t arrive.',
+      '#svc-auto h3'       : 'Automation &amp; scripting',
+      '#svc-auto p'        : 'Custom tools that eliminate manual work&nbsp;: API integrations, technical documentation parsing, glue between systems that don\'t talk to each other.',
+      '#svc-svc h3'        : 'Commissioning &amp; support',
+      '#svc-svc p'         : 'System startup, optimization, as-built documentation, on-site and remote troubleshooting. The delivered system works — and stays maintainable.',
+      '#stack .sec-title'  : 'Platforms &amp; protocols',
+      '#lbl-control'       : 'Control &amp; DSP',
+      '#lbl-network'       : 'Network &amp; transport',
+      '#lbl-ai'            : 'Artificial intelligence',
+      '#projets .sec-title': 'Recent projects',
+      '#snap01 .snap-type' : 'FIXED INSTALL',
+      '#snap01 h3'         : 'Performance Venue — DSP + network',
+      '#snap01 p'          : 'Audio processing design and programming, redundant Dante network design, system startup and as-built documentation.',
+      '#snap02 .snap-type' : 'R&amp;D',
+      '#snap02 p'          : 'Control plugins for cameras and video walls&nbsp;: TCP/REST integration, protocol parsing, native UI within the Q-SYS ecosystem.',
+      '#snap03 .snap-type' : 'AUTOMATION',
+      '#snap03 h3'         : 'AV Automation Tools',
+      '#snap03 p'          : 'Structured extraction of one-line diagrams, schedule and inventory sync, API integrations that replace manual data entry.',
+      '#snap04 .snap-type' : 'SPATIAL',
+      '#snap04 p'          : 'Tracking-to-spatialization integration (PSN → ADM-OSC), scene routing, and show control for live productions.',
+      '#snap05 .snap-type' : 'LOCAL AI',
+      '#snap05 h3'         : 'AI Agents &amp; Local LLMs',
+      '#snap05 p'          : 'Deployment of local (Ollama) and cloud (Claude, OpenAI) language models for custom AV tools — internal chatbots, documentation generation, AI-augmented automation.',
+      '#contact h2'        : 'contact&nbsp;',
+      '#contact-desc'      : 'Programming, commissioning or a hand with a system acting up — reach out.',
+      '#lbl-email'         : 'email',
+      '#lbl-location'      : 'location',
+      '#lbl-status'        : 'status',
+      '#footer-tagline'    : 'Html · zero · made with AI',
+    }
+  };
+
+  let lang = localStorage.getItem('lang') || 'fr';
+  const btn = document.getElementById('lang-btn');
+
+  function setLang(l) {
+    lang = l;
+    localStorage.setItem('lang', l);
+    document.documentElement.lang = l;
+    btn.textContent = l === 'fr' ? 'EN' : 'FR';
+    const dict = T[l];
+    for (const sel in dict) {
+      const el = document.querySelector(sel);
+      if (el) el.innerHTML = dict[sel];
+    }
+  }
+
+  btn.addEventListener('click', () => setLang(lang === 'fr' ? 'en' : 'fr'));
+  /* Applique la langue mémorisée au chargement */
+  if (lang === 'en') setLang('en');
+})();
+</script>
+</body>
+</html>
